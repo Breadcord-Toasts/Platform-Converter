@@ -7,11 +7,12 @@ from discord.ext import commands
 
 import breadcord
 from .api import helpers
-from .api.abc import AbstractAPI, AbstractOAuthAPI, UniversalTrack, AbstractPlaylistAPI
+from .api.abc import AbstractAPI, AbstractOAuthAPI, AbstractPlaylistAPI
 from .api.errors import InvalidURLError
 from .api.helpers import track_embed, track_to_query, url_to_file
 from .api.platforms import SpotifyAPI
 from .api.types import APIInterface
+from .api.universals import UniversalTrack
 
 
 class PlatformConverter(helpers.PlatformAPICog):

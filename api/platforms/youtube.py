@@ -3,8 +3,9 @@ import re
 # noinspection PyFromFutureImport
 from youtubesearchpython.__future__ import VideosSearch, Video, Playlist
 
-from ..abc import AbstractAPI, UniversalTrack, AbstractPlaylistAPI, UniversalPlaylist
+from ..abc import AbstractAPI, AbstractPlaylistAPI
 from ..errors import InvalidURLError
+from ..universals import UniversalTrack, UniversalPlaylist
 
 
 def get_best_thumbnail(thumbnails: list[dict]) -> dict:

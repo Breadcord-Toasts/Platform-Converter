@@ -1,8 +1,9 @@
 import re
 from datetime import timedelta, datetime
 
-from ..abc import AbstractOAuthAPI, UniversalTrack, UniversalAlbum, AbstractPlaylistAPI, UniversalPlaylist
+from ..abc import AbstractOAuthAPI, AbstractPlaylistAPI
 from ..errors import InvalidURLError
+from ..universals import UniversalTrack, UniversalAlbum, UniversalPlaylist
 
 
 def spotify_track_to_universal(track: dict) -> UniversalTrack:

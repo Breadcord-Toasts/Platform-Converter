@@ -5,8 +5,9 @@ import discord
 from discord.ext import commands, tasks
 
 import breadcord
-from .abc import AbstractOAuthAPI, AbstractAPI, UniversalTrack
+from .abc import AbstractOAuthAPI, AbstractAPI
 from .types import APIInterface
+from .universals import UniversalTrack
 
 __all__ = [
     "PlatformConverter",

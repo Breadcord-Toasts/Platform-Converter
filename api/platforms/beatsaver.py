@@ -1,8 +1,9 @@
 import re
 import urllib.parse
 
-from ..abc import AbstractAPI, UniversalTrack
+from ..abc import AbstractAPI
 from ..errors import InvalidURLError
+from ..universals import UniversalTrack
 
 
 def beatsaver_map_to_universal(custom_map: dict) -> UniversalTrack:

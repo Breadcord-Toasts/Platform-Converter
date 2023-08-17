@@ -1,8 +1,8 @@
 import re
 
 from .youtube import YoutubeAPI
-from ..abc import UniversalTrack
 from ..errors import InvalidURLError
+from ..universals import UniversalTrack
 
 
 class YoutubeMusicAPI(YoutubeAPI):
