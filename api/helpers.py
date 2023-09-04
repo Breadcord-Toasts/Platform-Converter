@@ -22,6 +22,7 @@ from .platforms import (
     YoutubeAPI,
     YoutubeMusicAPI,
     BeatSaverAPI,
+    InvidiousAPI,
 )
 
 
@@ -44,6 +45,7 @@ class PlatformAPICog(breadcord.module.ModuleCog):
             "youtube": YoutubeAPI,
             "youtube_music": YoutubeMusicAPI,
             "beatsaver": BeatSaverAPI,
+            "invidious": InvidiousAPI,
         }
 
     async def cog_load(self) -> None:

@@ -150,6 +150,7 @@ class PlatformConverter(helpers.PlatformAPICog):
             )))
             return
 
+        await ctx.defer()
         results = await platform.search_tracks(query)
         if compact_embeds:
             embeds = []
