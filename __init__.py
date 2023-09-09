@@ -299,7 +299,8 @@ class PlatformConverter(helpers.PlatformAPICog):
             await ctx.reply("No results found")
             return
 
-        to_send = f"# Finished converting tracks\nConverted playlist: {url}\n\n"
+        to_send = (f"# Finished converting tracks\n"
+                   f"Converted from: {url}\n\n")
         for i, url in enumerate(converted_track_urls, start=1):
             if len(to_send) + len(url) >= 2000:
                 await ctx.channel.send(to_send)
