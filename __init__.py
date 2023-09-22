@@ -1,4 +1,5 @@
 import asyncio
+import io
 import re
 
 import discord
@@ -95,12 +96,7 @@ class PlatformConverter(helpers.PlatformAPICog):
         if preferred_platform_interface is None:
             raise ValueError("No valid preferred platform is set")
 
-        urls = re.findall("<?(?:https:|http:)\S+>?", message.content)
-        urls = tuple(filter(
-            lambda found_url: not found_url.startswith("<") and not found_url.endswith(">"),
-            urls
-        ))
-        if not urls:
+        if not (urls := re.findall(r"<?(?:https:|http:)\S+>?", message.content)):
             return
 
         async def convert_url(url: str) -> str:
@@ -246,10 +242,17 @@ class PlatformConverter(helpers.PlatformAPICog):
     # noinspection PyIncorrectDocstring
     @commands.hybrid_command()
     @app_commands.autocomplete(
-        from_platform=playlist_platform_autocomplete, # type: ignore
-        to_platform=platform_autocomplete, # type: ignore
+        from_platform=playlist_platform_autocomplete,  # type: ignore
+        to_platform=platform_autocomplete,  # type: ignore
     )
-    async def playlist_convert(self, ctx: commands.Context, from_platform: str, to_platform: str, url: str):
+    async def playlist_convert(
+        self,
+        ctx: commands.Context,
+        from_platform: str,
+        to_platform: str,
+        url: str,
+        start_index: int = 1,
+    ):
         """Converts playlists from one platform to another
 
         Parameters
@@ -260,6 +263,9 @@ class PlatformConverter(helpers.PlatformAPICog):
             The platform to convert to
         url: str
             The url to the playlist to convert
+        start_index: int
+            The track to start converting from.
+            Starts at 1 and includes the track at that index
         """
         if url.startswith("<") and url.endswith(">"):
             url = url[1:-1]
@@ -275,39 +281,53 @@ class PlatformConverter(helpers.PlatformAPICog):
             await ctx.reply("Could not find that playlist. Ensure that it exists and is public.")
             return
 
-        if len(playlist.tracks) > self.settings.max_convert_playlist_size.value:
+        run_by_owner = await self.bot.is_owner(ctx.author)
+        if not run_by_owner and len(playlist.tracks) > self.settings.max_convert_playlist_size.value:
             await ctx.reply(
                 f"This playlist is too big to convert in a reasonable amount of time, "
                 f"only the first {self.settings.max_convert_playlist_size.value} tracks will be converted.\n"
-                f"This may take a while."
+                f"This may take a while..."
             )
         else:
-            await ctx.reply("Converting tracks. This may take a while.")
+            await ctx.reply("Converting tracks. This may take a while...")
 
-        playlist.tracks = playlist.tracks[:self.settings.max_convert_playlist_size.value]
+        if not run_by_owner:
+            playlist.tracks = playlist.tracks[:self.settings.max_convert_playlist_size.value]
+        playlist.tracks = playlist.tracks[start_index - 1:]
 
         converted_track_urls = []
         for track in playlist.tracks:
             query = track_to_query(track)
             if converted_track := await to_platform.search_tracks(query):
-                converted_track_urls.append(f"<{converted_track[0].url}>")
+                converted_track_urls.append(converted_track[0].url)
             else:
                 converted_track_urls.append("Could not be found")
-            await asyncio.sleep(0.5) # Have to give the API some time to rest
+            # Give the API some time to breathe
+            await asyncio.sleep(0.5)
 
         if not converted_track_urls or all(url == "Could not be found" for url in converted_track_urls):
             await ctx.reply("No results found")
             return
 
+        def supress_embed(to_supress: str, /) -> str:
+            return f"<{to_supress}>"
+
         to_send = (f"# Finished converting tracks\n"
-                   f"Converted from: {url}\n\n")
-        for i, url in enumerate(converted_track_urls, start=1):
+                   f"Converted from: <{url}>\n\n")
+        for i, url in enumerate(map(supress_embed, converted_track_urls), start=1):
             if len(to_send) + len(url) >= 2000:
                 await ctx.channel.send(to_send)
                 to_send = ""
             to_send += f"{i}. {url}\n"
+
+        # A file listing all the converted urls
+        file = discord.File(
+            fp=io.BytesIO("\n".join(converted_track_urls).encode("utf-8")),
+            filename="converted_tracks.txt"
+        )
+
         if to_send:
-            await ctx.channel.send(to_send)
+            await ctx.channel.send(to_send, file=file)
 
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
         if isinstance(error, commands.MissingRequiredArgument):
